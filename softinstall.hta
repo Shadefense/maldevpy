@@ -1,0 +1,121 @@
+<html>
+<head>
+<title>Software Downloader/Installer</title>
+<HTA:APPLICATION 
+    ICON="cmd.exe"
+    BORDER="dialog"
+    SINGLEINSTANCE="yes"
+    WINDOWSTATE="normal"
+    SCROLL="no"
+    CONTEXTMENU="no"
+/>
+<script language="VBScript">
+
+    ' --- Configuration ---
+    Const DOWNLOAD_FOLDER = "C:\Temp\SoftwareInstalls\" ' Ensure this path exists or create it
+    ' Array of available software options: {ID, Name, URL to installer}
+    Dim SoftwareList(7)
+    SoftwareList(0) = Array("Chrome", "Google Chrome Browser", "dl.google.com")
+    SoftwareList(1) = Array("Firefox", "Mozilla Firefox Browser", "download.mozilla.org")
+    SoftwareList(2) = Array("7Zip", "7-Zip Archiver (64-bit)", "www.7-zip.org")
+    SoftwareList(3) = Array("7Zip", "7-Zip Archiver (64-bit)", "www.7-zip.org")
+    SoftwareList(4) = Array("7Zip", "7-Zip Archiver (64-bit)", "www.7-zip.org")
+    SoftwareList(5) = Array("7Zip", "7-Zip Archiver (64-bit)", "www.7-zip.org")
+    SoftwareList(6) = Array("7Zip", "7-Zip Archiver (64-bit)", "www.7-zip.org")
+    SoftwareList(7) = Array("7Zip", "7-Zip Archiver (64-bit)", "www.7-zip.org")
+    ' ---------------------
+
+    Sub Window_OnLoad()
+        ' Populate the selection list when the HTA loads
+        Dim i, opt
+        For i = 0 To UBound(SoftwareList)
+            Set opt = document.createElement("OPTION")
+            opt.value = SoftwareList(i)(2) ' URL as the option value
+            opt.text = SoftwareList(i)(1)  ' Display name
+            SoftwareSelect.Add opt
+        Next
+    End Sub
+
+    Sub DownloadAndInstall()
+        Dim selectedURL, fso, fileName, localPath, xhr, adoStream, shell, returnCode
+        
+        selectedURL = SoftwareSelect.value
+        If selectedURL = "" Then
+            MsgBox "Please select a program first.", vbExclamation
+            Exit Sub
+        End If
+
+        DownloadButton.Disabled = True
+        StatusMessage.innerText = "Starting download..."
+
+        Set fso = CreateObject("Scripting.FileSystemObject")
+        
+        ' Create download directory if it doesn't exist
+        If Not fso.FolderExists(DOWNLOAD_FOLDER) Then
+            fso.CreateFolder DOWNLOAD_FOLDER
+        End If
+
+        ' Extract filename from URL (simple method, handles basic URLs)
+        fileName = fso.GetFileName(selectedURL)
+        localPath = DOWNLOAD_FOLDER & fileName
+
+        ' --- Download Logic (Requires Internet Explorer engine components) ---
+        On Error Resume Next
+        Set xhr = CreateObject("WinHttp.WinHttpRequest.5.1")
+        xhr.Open "GET", selectedURL, False ' Synchronous download
+        xhr.Send
+        
+        If Err.Number <> 0 Or xhr.Status <> 200 Then
+            MsgBox "Failed to download file. Status: " & xhr.Status
+            DownloadButton.Disabled = False
+            Exit Sub
+        End If
+        On Error Goto 0
+
+        ' Save the binary data to a file using ADODB.Stream
+        Set adoStream = CreateObject("ADODB.Stream")
+        adoStream.Type = 1 ' Binary mode
+        adoStream.Open
+        adoStream.Write xhr.ResponseBody
+        adoStream.SaveToFile localPath, 2 ' Overwrite if exists
+        adoStream.Close
+
+        StatusMessage.innerText = "Download complete. Starting installation..."
+
+        ' --- Installation Logic ---
+        Set shell = CreateObject("WScript.Shell")
+
+        If LCase(fso.GetExtensionName(localPath)) = "msi" Then
+            ' Use msiexec for MSI installers
+            ' /i = install, /qn = Quiet No UI (silent)
+            shell.Run "msiexec.exe /i """ & localPath & """ /qn /norestart", 1, True
+        Else
+            ' Run EXE installers with common silent switches (may not work for all EXEs)
+            ' Common silent switches: /S, /q, /silent, /verysilent
+            shell.Run """" & localPath & """ /S", 1, True 
+        End If
+
+        StatusMessage.innerText = "Installation finished. Cleanup started."
+        ' Optional: Clean up the installer file after completion
+        fso.DeleteFile localPath, True
+
+        StatusMessage.innerText = "Process complete."
+        DownloadButton.Disabled = False
+    End Sub
+
+</script>
+</head>
+<body style="font-family: sans-serif; padding: 10px;">
+    <h3>Select Software to Install</h3>
+    <p>This script will download and attempt a silent installation.</p>
+    
+    <select id="SoftwareSelect" style="width: 350px;">
+        <option value="">-- Choose a program --</option>
+    </select>
+    <br><br>
+    
+    <button id="DownloadButton" onclick="VBScript:DownloadAndInstall()">Download and Install Selected</button>
+    <hr>
+    <p>Status: <strong id="StatusMessage">Ready</strong></p>
+</body>
+</html>

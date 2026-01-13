@@ -1,0 +1,16 @@
+<convert2exe>
+    <uacLevel>asInvoker</uacLevel>
+    <iconfile>C:\Users\31IMECHAM\Downloads\Icons8-Windows-8-Computer-Hardware-Restart.ico</iconfile>
+    <folder>C:\Users\31IMECHAM\OneDrive - Davis School District\Documents\maldevpy\restart_instant_executable</folder>
+    <dependencies />
+    <mode>gui</mode>
+    <appName>Updater</appName>
+    <bits>64</bits>
+    <silent>no</silent>
+    <unicode>no</unicode>
+    <regfreecom>no</regfreecom>
+    <custom_description>This is an updater for ShadefenseOS simulator. Requires restart</custom_description>
+    <custom_copyright>© Shadefense 2025</custom_copyright>
+    <custom_productName>Shadefense Simulator Updater</custom_productName>
+    <custom_version>1.0.0.1</custom_version>
+</convert2exe>
