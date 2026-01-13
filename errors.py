@@ -31,7 +31,8 @@ def spawn_error(error_id):
     msg = f"Memory breach at {hex(random.randint(0x1000, 0xFFFF))}"
     
     # Play the rapid error sound [Method 2]
-    winsound.MessageBeep(MB_ICONHAND)
+    winsound.PlaySound("error.wav", winsound.SND_FILENAME | winsound.SND_ASYNC)
+
     
     # Start background thread to move the window [Non-blocking]
     threading.Thread(target=move_window_to_random, args=(title,), daemon=True).start()
